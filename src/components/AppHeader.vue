@@ -2,7 +2,7 @@
   <header class="app-header">
     <div class="header-content">
       <div class="logo">
-        <!-- Иконка: чёрный квадрат с белыми столбцами -->
+        <!-- Иконка -->
         <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           
           <rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="#1A1A1A" stroke="#1A1A1A"/>
@@ -127,45 +127,6 @@ const handleLogout = () => {
   color: #b71c1c;
 }
 
-@media (max-width: 768px) {
-  .app-header {
-    padding: 12px 16px;
-  }
-  
-  .logo-icon {
-    width: 28px;
-    height: 28px;
-  }
-  
-  .logo-text {
-    font-size: 17px;
-  }
-  
-  .header-nav {
-    gap: 16px;
-  }
-  
-  .nav-link {
-    font-size: 13px;
-  }
-}
 
-@media (max-width: 480px) {
-  .logo-icon {
-    width: 24px;
-    height: 24px;
-  }
-  
-  .logo-text {
-    font-size: 15px;
-  }
-  
-  .header-nav {
-    gap: 12px;
-  }
-  
-  .nav-link {
-    font-size: 12px;
-  }
-}
+
 </style>

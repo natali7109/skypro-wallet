@@ -1,5 +1,6 @@
 <template>
   <div class="register-page">
+  <AppHeader />
     <div class="register-card">
       <h1 class="register-title">Регистрация</h1>
       
@@ -8,7 +9,7 @@
       </div>
       
       <form @submit.prevent="handleRegister" class="register-form">
-        <!-- Имя -->
+         
         <div class="form-group" :class="getFieldClass('name')">
          
           <div class="input-wrapper">
@@ -28,7 +29,7 @@
           </div>
         </div>
 
-        <!-- Email -->
+         
         <div class="form-group" :class="getFieldClass('email')">
          
           <div class="input-wrapper">
@@ -48,7 +49,7 @@
           </div>
         </div>
 
-        <!-- Пароль -->
+         
         <div class="form-group" :class="getFieldClass('password')">
           
           <div class="input-wrapper">
@@ -78,7 +79,7 @@
         </button>
       </form>
       
-      <!-- Ссылка на вход в две строки -->
+       
       <div class="login-wrapper">
         <p class="login-text">Уже есть аккаунт?</p>
         <router-link to="/login" class="login-link">Войдите здесь</router-link>
@@ -88,12 +89,13 @@
 </template>
 
 <script setup>
+import AppHeader from '@/components/AppHeader.vue'
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// Состояния формы
+ 
 const name = ref('')
 const login = ref('')
 const password = ref('')
@@ -111,13 +113,13 @@ const touched = ref({
   password: false
 })
 
-// Валидация
+ 
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/
   return emailRegex.test(email)
 }
 
-// Валидация конкретного поля
+ 
 const validateField = (field) => {
   touched.value[field] = true
   
@@ -154,25 +156,25 @@ const validateField = (field) => {
   }
 }
 
-// Валидация всех полей
+ 
 const validateAllFields = () => {
   ['name', 'email', 'password'].forEach(field => {
     validateField(field)
   })
 }
 
-// Обработка ввода
+ 
 const handleInput = (field) => {
   touched.value[field] = true
   generalError.value = ''
-  // Очищаем ошибку поля при вводе
+  
   errors.value[field] = ''
   
-  // Валидируем поле сразу при вводе
+  
   validateField(field)
 }
 
-// Получение класса для поля
+ 
 const getFieldClass = (field) => {
   const fieldMap = {
     name: name.value,
@@ -190,26 +192,26 @@ const getFieldClass = (field) => {
   return 'field-empty'
 }
 
-// Проверка валидности формы
+ 
 const isFormValid = computed(() => {
   // Проверяем все поля
   const isNameValid = name.value && name.value.length >= 2
   const isEmailValid = login.value && validateEmail(login.value)
   const isPasswordValid = password.value && password.value.length >= 6
   
-  // Проверяем, что нет ошибок
+   
   const hasNoErrors = !errors.value.name && !errors.value.email && !errors.value.password
   
   return isNameValid && isEmailValid && isPasswordValid && hasNoErrors
 })
 
-// Следим за изменениями полей и перепроверяем форму
+ 
 watch([name, login, password], () => {
   // Пересчитываем валидность при любом изменении
   // computed сам пересчитается
 }, { deep: true })
 
-// Обработка регистрации
+ 
 const handleRegister = async () => {
   // Валидируем все поля перед отправкой
   validateAllFields()
@@ -245,28 +247,34 @@ const handleRegister = async () => {
 <style scoped>
 .register-page {
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;  
   display: flex;
   align-items: center;
   justify-content: center;
   background: #F5F5F5;
   padding: 20px;
+  padding-top: 100px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .register-card {
   background: #FFFFFF;
-  padding: 40px 32px 32px;
+  padding: 28px 28px 24px;
   border-radius: 16px;
   width: 100%;
   max-width: 400px;
+  max-height: calc(100vh - 140px);
+  overflow: hidden;  
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;  
 }
 
 .register-title {
-  margin-bottom: 28px;
+  margin-bottom: 20px;
   text-align: center;
   color: #1a1a1a;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
@@ -274,7 +282,7 @@ const handleRegister = async () => {
 .register-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 /* Группа полей */
@@ -297,7 +305,7 @@ const handleRegister = async () => {
   width: 100%;
 }
 
-/* Базовый стиль инпута */
+ 
 .base-input {
   width: 100%;
   padding: 14px 16px;
@@ -318,7 +326,7 @@ const handleRegister = async () => {
   font-size: 16px;
 }
 
-/* Состояние 1: Пустое поле (серая обводка, серый текст) */
+ 
 .field-empty .base-input {
   border-color: #d0d0d0;
   color: #999999;
@@ -329,12 +337,12 @@ const handleRegister = async () => {
   color: #999999;
 }
 
-/* Состояние 2: При вводе (черный текст) */
+ 
 .base-input:not(.field-empty) {
   color: #000000;
 }
 
-/* Состояние 3: Валидное поле (светло-фиолетовый фон, темно-фиолетовая обводка) */
+ 
 .field-valid .base-input {
   border-color: #4a3cb5;
   background-color: #f0edff;
@@ -345,14 +353,14 @@ const handleRegister = async () => {
   color: #999999;
 }
 
-/* Состояние 4: Ошибка (светло-красный фон, темно-красная обводка) */
+ 
 .field-error-state .base-input {
   border-color: #c62828;
   background-color: #fff5f5;
   color: #000000;
 }
 
-/* Стиль для звездочки ошибки */
+  
 .error-star {
   position: absolute;
   right: 14px;
@@ -363,7 +371,7 @@ const handleRegister = async () => {
   font-weight: 700;
 }
 
-/* Сообщение об ошибке поля */
+ 
 .field-error {
   font-size: 12px;
   color: #c62828;
@@ -373,7 +381,7 @@ const handleRegister = async () => {
   margin-top: 2px;
 }
 
-/* Общая ошибка */
+ 
 .general-error {
   background: #fff5f5;
   color: #c62828;
@@ -387,7 +395,7 @@ const handleRegister = async () => {
   margin-bottom: 4px;
 }
 
-/* Кнопка регистрации */
+ 
 .register-button {
   width: 100%;
   padding: 14px 16px;
@@ -397,13 +405,13 @@ const handleRegister = async () => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  height: 50px;
+  height: 46px;
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   margin-top: 4px;
 }
 
-/* Активная кнопка (фиолетовая) */
+ 
 .register-button.button-active {
   background: #565EEF;
   color: #FFFFFF;
@@ -415,7 +423,7 @@ const handleRegister = async () => {
   box-shadow: 0 4px 12px rgba(86, 94, 239, 0.3);
 }
 
-/* Неактивная кнопка (серая) */
+ 
 .register-button.button-inactive {
   background: #cccccc;
   color: #ffffff;
@@ -427,7 +435,7 @@ const handleRegister = async () => {
   opacity: 0.8;
 }
 
-/* Ссылка на вход - две строки */
+ 
 .login-wrapper {
   margin-top: 24px;
   display: flex;
@@ -459,32 +467,5 @@ const handleRegister = async () => {
   text-decoration: underline;
 }
 
-/* Адаптация под мобильные устройства */
-@media (max-width: 480px) {
-  .register-card {
-    padding: 28px 20px 24px;
-  }
-  
-  .register-title {
-    font-size: 22px;
-    margin-bottom: 24px;
-  }
-  
-  .base-input,
-  .register-button {
-    height: 46px;
-    padding: 12px 14px;
-    font-size: 15px;
-  }
-  
-  .login-wrapper {
-    margin-top: 20px;
-    gap: 4px;
-  }
-  
-  .login-text,
-  .login-link {
-    font-size: 14px;
-  }
-}
+
 </style>

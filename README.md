@@ -1,38 +1,117 @@
-# skypro-wallet
+Skypro.Wallet
 
-This template should help get you started developing with Vue 3 in Vite.
+Учебный проект по разработке SPA-приложения для учёта личных расходов.
 
-## Recommended IDE Setup
+---
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## 📋 План проекта по спринтам
 
-## Recommended Browser Setup
+### Спринт 1. Старт проекта и базовая верстка ✅
+> **Результат:** готовый стартовый каркас проекта с полностью сверстанными основными страницами. Заложен технический и визуальный фундамент для дальнейшей разработки логики проекта.
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+- [x] Создан проект (Vue 3 + Vite)
+- [x] Установлены зависимости (Vue Router, Pinia, Axios, date-fns)
+- [x] Создана структура папок (router, stores, views, api, components/ui)
+- [x] Настроен Vue Router с защитой маршрутов
+- [x] Создано Pinia-хранилище пользователя
+- [x] Свёрстана страница входа (LoginView) со всеми состояниями
+- [x] Свёрстана страница регистрации (RegisterView)
+- [x] Добавлен хедер с логотипом Skypro.Wallet
+- [x] Валидация форм (имя, email, пароль)
+- [x] Оформлен README
 
-## Customize configuration
+---
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+### Спринт 2. API и логика ⏳
+> **Результат:** функциональный проект, в котором работают ключевые сценарии взаимодействия с пользователем.
 
-## Project Setup
+- [ ] Настройка Axios и API-эндпоинтов
+- [ ] Подключение реального бэкенда
+- [ ] Главная страница (кнопки навигации)
+- [ ] Страница расходов (таблица, фильтры, календарь)
+- [ ] Страница аналитики (графики)
+- [ ] Полноценная авторизация (вход/регистрация/выход)
 
-```sh
+---
+
+### Спринт 3. Доработка проекта ⏳
+> **Результат:** полностью готовый, презентабельный и рабочий продукт.
+
+- [ ] Доработка UI/UX
+- [ ] Тестирование и отладка
+- [ ] Финальный деплой
+
+---
+
+## 🚀 Технологии
+
+- **Vue 3** — Composition API, `<script setup>`
+- **Vue Router** — навигация и защита маршрутов
+- **Pinia** — управление состоянием
+- **Axios** — HTTP-запросы
+- **date-fns** — работа с датами
+- **Vite** — сборка проекта
+
+---
+
+## 📁 Структура проекта
+src/
+├── api/ # Настройка Axios (ждёт подключения)
+├── components/
+│ ├── ui/ # Базовые UI-компоненты
+│ │ ├── BaseInput.vue
+│ │ └── BaseButton.vue
+│ └── AppHeader.vue # Хедер с логотипом и навигацией
+├── router/
+│ └── index.js # Настройка маршрутов
+├── stores/
+│ └── user.js # Pinia-хранилище пользователя
+├── views/
+│ ├── LoginView.vue # Страница входа ✅
+│ ├── RegisterView.vue # Страница регистрации ✅
+│ ├── HomeView.vue # Главная страница ⏳
+│ ├── ExpensesView.vue # Страница расходов ⏳
+│ └── AnalyticsView.vue # Страница аналитики ⏳
+├── App.vue
+└── main.js
+
+text
+
+---
+
+## 🛠️ Установка и запуск
+
+```bash
+# Клонировать репозиторий
+git clone https://github.com/natali7109/skypro-wallet.git
+
+# Перейти в папку проекта
+cd skypro-wallet
+
+# Установить зависимости
 npm install
-```
 
-### Compile and Hot-Reload for Development
-
-```sh
+# Запустить в режиме разработки
 npm run dev
-```
+🌿 Ветки
+Ветка	Назначение
+main	Чистый проект (только заглушки)
+feature/auth	Страницы входа и регистрации (ожидает проверки)
+🧪 Тестовые данные
+Вход:
 
-### Compile and Minify for Production
+Email: test@example.com
 
-```sh
-npm run build
-```
+Пароль: 123456
+
+Регистрация:
+
+Любой email кроме existing@example.com
+
+📝 Статус проекта
+Спринт	Статус
+Спринт 1. Старт проекта и базовая верстка	✅ Завершён
+Спринт 2. API и логика	⏳ В плане
+Спринт 3. Доработка	⏳ В плане
+👤 Автор
+Natali — GitHub

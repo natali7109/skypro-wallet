@@ -1,5 +1,6 @@
 <template>
   <div class="login-page">
+  <AppHeader />
     <div class="login-card">
       <h1 class="login-title">Вход</h1>
       
@@ -24,7 +25,7 @@
           </div>
         </div>
 
-        <!-- Поле Пароль -->
+        
         <div class="form-group" :class="getFieldClass('password')">
           
           <div class="input-wrapper">
@@ -44,12 +45,12 @@
           </div>
         </div>
 
-        <!-- Общая ошибка -->
+         
         <div v-if="generalError" class="general-error">
           Упс! Введенные вами данные не корректны. Введите данные корректно и повторите попытку.
         </div>
         
-        <!-- Кнопка -->
+        
         <button 
           type="submit" 
           :disabled="!isFormValid || loading"
@@ -60,7 +61,7 @@
         </button>
       </form>
       
-      <!-- Ссылка на регистрацию в две строки -->
+       
       <div class="register-wrapper">
         <p class="register-text">Нужно зарегистрироваться?</p>
         <router-link to="/register" class="register-link">Зарегистрируйтесь здесь</router-link>
@@ -70,6 +71,7 @@
 </template>
 
 <script setup>
+import AppHeader from '@/components/AppHeader.vue'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -135,7 +137,7 @@ const handleInput = (field) => {
   }
 }
 
-// Валидация поля при потере фокуса
+ 
 const validateField = (field) => {
   touched.value[field] = true
   
@@ -160,14 +162,14 @@ const validateField = (field) => {
   }
 }
 
-// Проверка валидности формы
+ 
 const isFormValid = computed(() => {
   const isEmailValid = login.value && validateEmail(login.value)
   const isPasswordValid = password.value && password.value.length >= 6
   return isEmailValid && isPasswordValid && !errors.value.email && !errors.value.password
 })
 
-// Обработка входа
+ 
 const handleLogin = async () => {
   touched.value.email = true
   touched.value.password = true
@@ -215,23 +217,28 @@ const handleLogin = async () => {
 <style scoped>
 .login-page {
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F5F5F5;;
+  background: #F5F5F5;
   padding: 20px;
+  padding-top: 100px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .login-card {
   background: #FFFFFF;
-  padding: 40px 32px 32px;
+  padding: 24px 28px 24px;
   border-radius: 16px;
   width: 100%;
   max-width: 400px;
+  max-height: calc(100vh - 140px);
+  overflow: hidden;  
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;  
 }
-
 .login-title {
   margin-bottom: 28px;
   text-align: center;
@@ -427,32 +434,4 @@ const handleLogin = async () => {
   text-decoration: underline;
 }
 
-/* Адаптация под мобильные устройства */
-@media (max-width: 480px) {
-  .login-card {
-    padding: 28px 20px 24px;
-  }
-  
-  .login-title {
-    font-size: 22px;
-    margin-bottom: 24px;
-  }
-  
-  .base-input,
-  .login-button {
-    height: 46px;
-    padding: 12px 14px;
-    font-size: 15px;
-  }
-  
-  .register-wrapper {
-    margin-top: 20px;
-    gap: 4px;
-  }
-  
-  .register-text,
-  .register-link {
-    font-size: 14px;
-  }
-}
 </style>
