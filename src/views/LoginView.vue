@@ -1,67 +1,52 @@
 <template>
   <div class="login-page">
-  <AppHeader />
+    <AppHeader />
     <div class="login-card">
       <h1 class="login-title">Вход</h1>
       
       <form @submit.prevent="handleLogin" class="login-form">
         <!-- Поле Email -->
         <div class="form-group" :class="getFieldClass('email')">
-         
-          <div class="input-wrapper">
-            <input
-              type="email"
-              v-model="login"
-              placeholder="Электронная почта"
-              :disabled="loading"
-              @input="handleInput('email')"
-              @blur="validateField('email')"
-              class="base-input"
-            />
-            <span v-if="errors.email && touched.email" class="error-star">*</span>
-          </div>
-          <div v-if="errors.email && touched.email" class="field-error">
-            {{ errors.email }}
-          </div>
+          <BaseInput
+            v-model="login"
+            type="email"
+            placeholder="Электронная почта"
+            :error="errors.email && touched.email ? errors.email : ''"
+            :disabled="loading"
+            :field-class="getFieldClass('email')"
+            @blur="validateField('email')"
+            @update:model-value="handleInput('email')"
+          />
         </div>
-
         
+        <!-- Поле Пароль -->
         <div class="form-group" :class="getFieldClass('password')">
-          
-          <div class="input-wrapper">
-            <input
-              type="password"
-              v-model="password"
-              placeholder="Пароль"
-              :disabled="loading"
-              @input="handleInput('password')"
-              @blur="validateField('password')"
-              class="base-input"
-            />
-            <span v-if="errors.password && touched.password" class="error-star">*</span>
-          </div>
-          <div v-if="errors.password && touched.password" class="field-error">
-            {{ errors.password }}
-          </div>
+          <BaseInput
+            v-model="password"
+            type="password"
+            placeholder="Пароль"
+            :error="errors.password && touched.password ? errors.password : ''"
+            :disabled="loading"
+            :field-class="getFieldClass('password')"
+            @blur="validateField('password')"
+            @update:model-value="handleInput('password')"
+          />
         </div>
 
-         
+        <!-- Общая ошибка -->
         <div v-if="generalError" class="general-error">
           Упс! Введенные вами данные не корректны. Введите данные корректно и повторите попытку.
         </div>
         
-        
-        <button 
-          type="submit" 
+        <!-- Кнопка -->
+        <BaseButton
+          type="submit"
           :disabled="!isFormValid || loading"
-          class="login-button"
-          :class="{ 'button-active': isFormValid && !loading, 'button-inactive': !isFormValid || loading }"
-        >
-          {{ loading ? 'Вход...' : 'Войти' }}
-        </button>
+          :loading="loading"
+          label="Войти"
+        />
       </form>
       
-       
       <div class="register-wrapper">
         <p class="register-text">Нужно зарегистрироваться?</p>
         <router-link to="/register" class="register-link">Зарегистрируйтесь здесь</router-link>
@@ -72,6 +57,8 @@
 
 <script setup>
 import AppHeader from '@/components/AppHeader.vue'
+import BaseInput from '@/components/ui/BaseInput.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -137,7 +124,7 @@ const handleInput = (field) => {
   }
 }
 
- 
+// Валидация поля при потере фокуса
 const validateField = (field) => {
   touched.value[field] = true
   
@@ -162,14 +149,14 @@ const validateField = (field) => {
   }
 }
 
- 
+// Проверка валидности формы
 const isFormValid = computed(() => {
   const isEmailValid = login.value && validateEmail(login.value)
   const isPasswordValid = password.value && password.value.length >= 6
   return isEmailValid && isPasswordValid && !errors.value.email && !errors.value.password
 })
 
- 
+// Обработка входа
 const handleLogin = async () => {
   touched.value.email = true
   touched.value.password = true
@@ -235,17 +222,18 @@ const handleLogin = async () => {
   width: 100%;
   max-width: 400px;
   max-height: calc(100vh - 140px);
-  overflow: hidden;  
+  overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  box-sizing: border-box;  
+  box-sizing: border-box;
 }
+
 .login-title {
   margin-bottom: 28px;
   text-align: center;
   color: #1a1a1a;
   font-size: 26px;
   font-weight: 700;
-  font-family:apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .login-form {
@@ -254,103 +242,12 @@ const handleLogin = async () => {
   gap: 16px;
 }
 
-/* Группа полей */
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.field-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #555555;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  margin-bottom: 2px;
-}
-
-.input-wrapper {
-  position: relative;
-  width: 100%;
-}
-
-/* Базовый стиль инпута */
-.base-input {
-  width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #d0d0d0;
-  border-radius: 10px;
-  font-size: 16px;
-  color: #999999;
-  background: #ffffff;
-  transition: all 0.3s ease;
-  outline: none;
-  box-sizing: border-box;
-  height: 50px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
-
-.base-input::placeholder {
-  color: #999999;
-  font-size: 16px;
-}
-
-/* Состояние 1: Пустое поле (серая обводка, серый текст) */
-.field-empty .base-input {
-  border-color: #d0d0d0;
-  color: #999999;
-  background: #ffffff;
-}
-
-.field-empty .base-input::placeholder {
-  color: #999999;
-}
-
-/* Состояние 2: При вводе (черный текст) */
-.base-input:not(.field-empty) {
-  color: #000000;
-}
-
-/* Состояние 3: Валидное поле (светло-фиолетовый фон, темно-фиолетовая обводка) */
-.field-valid .base-input {
-  border-color: #4a3cb5;
-  background-color: #f0edff;
-  color: #000000;
-}
-
-.field-valid .base-input::placeholder {
-  color: #999999;
-}
-
-/* Состояние 4: Ошибка (светло-красный фон, темно-красная обводка) */
-.field-error-state .base-input {
-  border-color: #c62828;
-  background-color: #fff5f5;
-  color: #000000;
-}
-
-/* Стиль для звездочки ошибки */
-.error-star {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #c62828;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-/* Сообщение об ошибке поля */
-.field-error {
-  font-size: 12px;
-  color: #c62828;
-  padding-left: 4px;
-  font-weight: 500;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  margin-top: 2px;
-}
-
-/* Общая ошибка */
 .general-error {
   background: #fff5f5;
   color: #c62828;
@@ -363,46 +260,6 @@ const handleLogin = async () => {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* Кнопка входа */
-.login-button {
-  width: 100%;
-  padding: 14px 16px;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  height: 50px;
-  box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
-
-/* Активная кнопка (фиолетовая) */
-.login-button.button-active {
-  background: #565EEF;
-  color: #FFFFFF;
-}
-
-.login-button.button-active:hover:not(:disabled) {
-  background: #33399b;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(86, 94, 239, 0.3);
-}
-
-/* Неактивная кнопка (серая) */
-.login-button.button-inactive {
-  background: #cccccc;
-  color: #ffffff;
-  cursor: not-allowed;
-}
-
-.login-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.8;
-}
-
-/* Ссылка на регистрацию - две строки */
 .register-wrapper {
   margin-top: 24px;
   display: flex;
@@ -433,5 +290,4 @@ const handleLogin = async () => {
   color: #33399b;
   text-decoration: underline;
 }
-
 </style>
