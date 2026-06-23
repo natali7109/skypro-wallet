@@ -1,6 +1,5 @@
 <template>
-  <div class="input-wrapper" :class="{ 'has-error': error }">
-    <label v-if="label" class="input-label">{{ label }}</label>
+  <div class="input-wrapper" :class="[fieldClass, { 'has-error': error }]">
     <input
       :type="type"
       :value="modelValue"
@@ -11,6 +10,7 @@
       @blur="$emit('blur')"
       @focus="$emit('focus')"
     />
+    <span v-if="error" class="error-star">*</span>
     <span v-if="error" class="error-text">{{ error }}</span>
   </div>
 </template>
@@ -29,10 +29,6 @@ defineProps({
     type: String,
     default: ''
   },
-  label: {
-    type: String,
-    default: ''
-  },
   error: {
     type: String,
     default: ''
@@ -40,6 +36,10 @@ defineProps({
   disabled: {
     type: Boolean,
     default: false
+  },
+  fieldClass: {
+    type: String,
+    default: ''
   }
 })
 
@@ -48,52 +48,76 @@ defineEmits(['update:model-value', 'blur', 'focus'])
 
 <style scoped>
 .input-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.input-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #555555;
+  position: relative;
+  width: 100%;
 }
 
 .base-input {
   width: 100%;
-  padding: 12px 14px;
-  border: 2px solid #e0e0e0;
+  padding: 14px 16px;
+  border: 2px solid #d0d0d0;
   border-radius: 10px;
   font-size: 16px;
-  color: #1a1a1a;
+  color: #999999;
   background: #ffffff;
-  transition: all 0.25s ease;
+  transition: all 0.3s ease;
   outline: none;
+  box-sizing: border-box;
+  height: 50px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .base-input::placeholder {
   color: #999999;
+  font-size: 16px;
 }
 
-.base-input:focus {
-  border-color: #565EEF;
-  box-shadow: 0 0 0 3px rgba(86, 94, 239, 0.1);
+/* Состояние: пустое поле */
+.field-empty .base-input {
+  border-color: #d0d0d0;
+  color: #999999;
+  background: #ffffff;
 }
 
-.base-input:disabled {
-  background: #f5f5f5;
-  cursor: not-allowed;
-  opacity: 0.7;
+.field-empty .base-input::placeholder {
+  color: #999999;
 }
 
-/* Состояние ошибки */
-.input-wrapper.has-error .base-input {
+/* Состояние: при вводе */
+.base-input:not(.field-empty) {
+  color: #000000;
+}
+
+/* Состояние: валидное поле */
+.field-valid .base-input {
+  border-color: #4a3cb5;
+  background-color: #f0edff;
+  color: #000000;
+}
+
+.field-valid .base-input::placeholder {
+  color: #999999;
+}
+
+/* Состояние: ошибка */
+.field-error-state .base-input {
   border-color: #c62828;
   background-color: #fff5f5;
+  color: #000000;
 }
 
 .input-wrapper.has-error .base-input:focus {
   box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.1);
+}
+
+.error-star {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #c62828;
+  font-size: 20px;
+  font-weight: 700;
 }
 
 .error-text {
@@ -101,5 +125,8 @@ defineEmits(['update:model-value', 'blur', 'focus'])
   color: #c62828;
   padding-left: 4px;
   font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  margin-top: 4px;
+  display: block;
 }
 </style>

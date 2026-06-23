@@ -1,5 +1,6 @@
 <template>
   <div class="register-page">
+    <AppHeader />
     <div class="register-card">
       <h1 class="register-title">Регистрация</h1>
       
@@ -10,75 +11,52 @@
       <form @submit.prevent="handleRegister" class="register-form">
         <!-- Имя -->
         <div class="form-group" :class="getFieldClass('name')">
-         
-          <div class="input-wrapper">
-            <input
-              type="text"
-              v-model="name"
-              placeholder="Имя"
-              :disabled="loading"
-              @input="handleInput('name')"
-              @blur="validateField('name')"
-              class="base-input"
-            />
-            <span v-if="errors.name && touched.name" class="error-star">*</span>
-          </div>
-          <div v-if="errors.name && touched.name" class="field-error">
-            {{ errors.name }}
-          </div>
+          <BaseInput
+            v-model="name"
+            type="text"
+            placeholder="Имя"
+            :error="errors.name && touched.name ? errors.name : ''"
+            :disabled="loading"
+            @blur="validateField('name')"
+            @update:model-value="handleInput('name')"
+          />
         </div>
 
         <!-- Email -->
         <div class="form-group" :class="getFieldClass('email')">
-         
-          <div class="input-wrapper">
-            <input
-              type="email"
-              v-model="login"
-              placeholder="Электронная почта"
-              :disabled="loading"
-              @input="handleInput('email')"
-              @blur="validateField('email')"
-              class="base-input"
-            />
-            <span v-if="errors.email && touched.email" class="error-star">*</span>
-          </div>
-          <div v-if="errors.email && touched.email" class="field-error">
-            {{ errors.email }}
-          </div>
+          <BaseInput
+            v-model="login"
+            type="email"
+            placeholder="Электронная почта"
+            :error="errors.email && touched.email ? errors.email : ''"
+            :disabled="loading"
+            @blur="validateField('email')"
+            @update:model-value="handleInput('email')"
+          />
         </div>
 
         <!-- Пароль -->
         <div class="form-group" :class="getFieldClass('password')">
-          
-          <div class="input-wrapper">
-            <input
-              type="password"
-              v-model="password"
-              placeholder="Пароль"
-              :disabled="loading"
-              @input="handleInput('password')"
-              @blur="validateField('password')"
-              class="base-input"
-            />
-            <span v-if="errors.password && touched.password" class="error-star">*</span>
-          </div>
-          <div v-if="errors.password && touched.password" class="field-error">
-            {{ errors.password }}
-          </div>
+          <BaseInput
+            v-model="password"
+            type="password"
+            placeholder="Пароль"
+            :error="errors.password && touched.password ? errors.password : ''"
+            :disabled="loading"
+            @blur="validateField('password')"
+            @update:model-value="handleInput('password')"
+          />
         </div>
         
-        <button 
-          type="submit" 
-          :disabled="!isFormValid || loading"
-          class="register-button"
-          :class="{ 'button-active': isFormValid && !loading, 'button-inactive': !isFormValid || loading }"
-        >
-          {{ loading ? 'Регистрация...' : 'Зарегистрироваться' }}
-        </button>
+        <!-- Кнопка -->
+        <BaseButton
+          type="submit"
+          :disabled="!isFormValid || loading || userStore.isLoading"
+          :loading="loading || userStore.isLoading"
+          label="Зарегистрироваться"
+        />
       </form>
       
-      <!-- Ссылка на вход в две строки -->
       <div class="login-wrapper">
         <p class="login-text">Уже есть аккаунт?</p>
         <router-link to="/login" class="login-link">Войдите здесь</router-link>
@@ -88,10 +66,15 @@
 </template>
 
 <script setup>
+import AppHeader from '@/components/AppHeader.vue'
+import BaseInput from '@/components/ui/BaseInput.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 
 // Состояния формы
 const name = ref('')
@@ -165,10 +148,7 @@ const validateAllFields = () => {
 const handleInput = (field) => {
   touched.value[field] = true
   generalError.value = ''
-  // Очищаем ошибку поля при вводе
   errors.value[field] = ''
-  
-  // Валидируем поле сразу при вводе
   validateField(field)
 }
 
@@ -192,26 +172,18 @@ const getFieldClass = (field) => {
 
 // Проверка валидности формы
 const isFormValid = computed(() => {
-  // Проверяем все поля
   const isNameValid = name.value && name.value.length >= 2
   const isEmailValid = login.value && validateEmail(login.value)
   const isPasswordValid = password.value && password.value.length >= 6
-  
-  // Проверяем, что нет ошибок
   const hasNoErrors = !errors.value.name && !errors.value.email && !errors.value.password
-  
   return isNameValid && isEmailValid && isPasswordValid && hasNoErrors
 })
 
-// Следим за изменениями полей и перепроверяем форму
-watch([name, login, password], () => {
-  // Пересчитываем валидность при любом изменении
-  // computed сам пересчитается
-}, { deep: true })
+// Следим за изменениями полей
+watch([name, login, password], () => {}, { deep: true })
 
 // Обработка регистрации
 const handleRegister = async () => {
-  // Валидируем все поля перед отправкой
   validateAllFields()
   
   if (!isFormValid.value) {
@@ -222,20 +194,19 @@ const handleRegister = async () => {
   generalError.value = ''
   
   try {
-    await new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (login.value === 'existing@example.com') {
-          reject(new Error('Пользователь с таким email уже зарегистрирован'))
-        } else {
-          resolve({ success: true })
-        }
-      }, 1000)
+    const result = await userStore.register({
+      name: name.value,
+      email: login.value,
+      password: password.value
     })
     
-    router.push('/login')
-    
+    if (result.success) {
+      router.push('/expenses')
+    } else {
+      generalError.value = result.error || 'Ошибка при регистрации'
+    }
   } catch (error) {
-    generalError.value = error.message || 'Ошибка при регистрации'
+    generalError.value = 'Ошибка при регистрации. Попробуйте позже.'
   } finally {
     loading.value = false
   }
@@ -245,135 +216,50 @@ const handleRegister = async () => {
 <style scoped>
 .register-page {
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #F5F5F5;
   padding: 20px;
+  padding-top: 100px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .register-card {
   background: #FFFFFF;
-  padding: 40px 32px 32px;
+  padding: 28px 28px 24px;
   border-radius: 16px;
   width: 100%;
   max-width: 400px;
+  max-height: calc(100vh - 140px);
+  overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
 }
 
 .register-title {
-  margin-bottom: 28px;
+  margin-bottom: 20px;
   text-align: center;
   color: #1a1a1a;
   font-size: 26px;
   font-weight: 700;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .register-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
-/* Группа полей */
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.field-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #555555;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  margin-bottom: 2px;
-}
-
-.input-wrapper {
-  position: relative;
-  width: 100%;
-}
-
-/* Базовый стиль инпута */
-.base-input {
-  width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #d0d0d0;
-  border-radius: 10px;
-  font-size: 16px;
-  color: #999999;
-  background: #ffffff;
-  transition: all 0.3s ease;
-  outline: none;
-  box-sizing: border-box;
-  height: 50px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
-
-.base-input::placeholder {
-  color: #999999;
-  font-size: 16px;
-}
-
-/* Состояние 1: Пустое поле (серая обводка, серый текст) */
-.field-empty .base-input {
-  border-color: #d0d0d0;
-  color: #999999;
-  background: #ffffff;
-}
-
-.field-empty .base-input::placeholder {
-  color: #999999;
-}
-
-/* Состояние 2: При вводе (черный текст) */
-.base-input:not(.field-empty) {
-  color: #000000;
-}
-
-/* Состояние 3: Валидное поле (светло-фиолетовый фон, темно-фиолетовая обводка) */
-.field-valid .base-input {
-  border-color: #4a3cb5;
-  background-color: #f0edff;
-  color: #000000;
-}
-
-.field-valid .base-input::placeholder {
-  color: #999999;
-}
-
-/* Состояние 4: Ошибка (светло-красный фон, темно-красная обводка) */
-.field-error-state .base-input {
-  border-color: #c62828;
-  background-color: #fff5f5;
-  color: #000000;
-}
-
-/* Стиль для звездочки ошибки */
-.error-star {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #c62828;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-/* Сообщение об ошибке поля */
-.field-error {
-  font-size: 12px;
-  color: #c62828;
-  padding-left: 4px;
-  font-weight: 500;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  margin-top: 2px;
-}
-
-/* Общая ошибка */
 .general-error {
   background: #fff5f5;
   color: #c62828;
@@ -383,53 +269,12 @@ const handleRegister = async () => {
   font-size: 14px;
   line-height: 1.5;
   border: 1px solid #ffcdd2;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   margin-bottom: 4px;
 }
 
-/* Кнопка регистрации */
-.register-button {
-  width: 100%;
-  padding: 14px 16px;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  height: 50px;
-  box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  margin-top: 4px;
-}
-
-/* Активная кнопка (фиолетовая) */
-.register-button.button-active {
-  background: #565EEF;
-  color: #FFFFFF;
-}
-
-.register-button.button-active:hover:not(:disabled) {
-  background: #33399b;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(86, 94, 239, 0.3);
-}
-
-/* Неактивная кнопка (серая) */
-.register-button.button-inactive {
-  background: #cccccc;
-  color: #ffffff;
-  cursor: not-allowed;
-}
-
-.register-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.8;
-}
-
-/* Ссылка на вход - две строки */
 .login-wrapper {
-  margin-top: 24px;
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -440,7 +285,7 @@ const handleRegister = async () => {
   margin: 0;
   color: #555555;
   font-size: 15px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   text-align: center;
 }
 
@@ -449,7 +294,7 @@ const handleRegister = async () => {
   text-decoration: none;
   font-weight: 600;
   font-size: 15px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   transition: color 0.2s;
   text-align: center;
 }
@@ -457,34 +302,5 @@ const handleRegister = async () => {
 .login-link:hover {
   color: #33399b;
   text-decoration: underline;
-}
-
-/* Адаптация под мобильные устройства */
-@media (max-width: 480px) {
-  .register-card {
-    padding: 28px 20px 24px;
-  }
-  
-  .register-title {
-    font-size: 22px;
-    margin-bottom: 24px;
-  }
-  
-  .base-input,
-  .register-button {
-    height: 46px;
-    padding: 12px 14px;
-    font-size: 15px;
-  }
-  
-  .login-wrapper {
-    margin-top: 20px;
-    gap: 4px;
-  }
-  
-  .login-text,
-  .login-link {
-    font-size: 14px;
-  }
 }
 </style>
