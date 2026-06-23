@@ -51,8 +51,8 @@
         <!-- Кнопка -->
         <BaseButton
           type="submit"
-          :disabled="!isFormValid || loading"
-          :loading="loading"
+          :disabled="!isFormValid || loading || userStore.isLoading"
+          :loading="loading || userStore.isLoading"
           label="Зарегистрироваться"
         />
       </form>
@@ -71,8 +71,10 @@ import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 
 // Состояния формы
 const name = ref('')
@@ -192,20 +194,19 @@ const handleRegister = async () => {
   generalError.value = ''
   
   try {
-    await new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (login.value === 'existing@example.com') {
-          reject(new Error('Пользователь с таким email уже зарегистрирован'))
-        } else {
-          resolve({ success: true })
-        }
-      }, 1000)
+    const result = await userStore.register({
+      name: name.value,
+      email: login.value,
+      password: password.value
     })
     
-    router.push('/login')
-    
+    if (result.success) {
+      router.push('/expenses')
+    } else {
+      generalError.value = result.error || 'Ошибка при регистрации'
+    }
   } catch (error) {
-    generalError.value = error.message || 'Ошибка при регистрации'
+    generalError.value = 'Ошибка при регистрации. Попробуйте позже.'
   } finally {
     loading.value = false
   }
@@ -242,15 +243,15 @@ const handleRegister = async () => {
   margin-bottom: 20px;
   text-align: center;
   color: #1a1a1a;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .register-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .form-group {
@@ -268,12 +269,12 @@ const handleRegister = async () => {
   font-size: 14px;
   line-height: 1.5;
   border: 1px solid #ffcdd2;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   margin-bottom: 4px;
 }
 
 .login-wrapper {
-  margin-top: 24px;
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -284,7 +285,7 @@ const handleRegister = async () => {
   margin: 0;
   color: #555555;
   font-size: 15px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   text-align: center;
 }
 
@@ -293,7 +294,7 @@ const handleRegister = async () => {
   text-decoration: none;
   font-weight: 600;
   font-size: 15px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   transition: color 0.2s;
   text-align: center;
 }

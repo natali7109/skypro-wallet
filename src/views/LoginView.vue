@@ -13,7 +13,6 @@
             placeholder="Электронная почта"
             :error="errors.email && touched.email ? errors.email : ''"
             :disabled="loading"
-            :field-class="getFieldClass('email')"
             @blur="validateField('email')"
             @update:model-value="handleInput('email')"
           />
@@ -27,7 +26,6 @@
             placeholder="Пароль"
             :error="errors.password && touched.password ? errors.password : ''"
             :disabled="loading"
-            :field-class="getFieldClass('password')"
             @blur="validateField('password')"
             @update:model-value="handleInput('password')"
           />
@@ -35,14 +33,14 @@
 
         <!-- Общая ошибка -->
         <div v-if="generalError" class="general-error">
-          Упс! Введенные вами данные не корректны. Введите данные корректно и повторите попытку.
+          {{ generalError }}
         </div>
         
         <!-- Кнопка -->
         <BaseButton
           type="submit"
-          :disabled="!isFormValid || loading"
-          :loading="loading"
+          :disabled="!isFormValid || loading || userStore.isLoading"
+          :loading="loading || userStore.isLoading"
           label="Войти"
         />
       </form>
@@ -61,8 +59,10 @@ import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 
 // Состояния формы
 const login = ref('')
@@ -172,25 +172,18 @@ const handleLogin = async () => {
   generalError.value = ''
   
   try {
-    await new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (login.value === 'test@example.com' && password.value === '123456') {
-          resolve({
-            user: { id: 1, name: 'Тестовый пользователь', email: login.value },
-            token: 'fake-jwt-token-12345'
-          })
-        } else {
-          reject(new Error('Invalid credentials'))
-        }
-      }, 1000)
+    const result = await userStore.login({
+      email: login.value,
+      password: password.value
     })
     
-    localStorage.setItem('token', 'fake-jwt-token-12345')
-    localStorage.setItem('userName', 'Тестовый пользователь')
-    localStorage.setItem('userLogin', login.value)
-    
-    router.push('/expenses')
-    
+    if (result.success) {
+      router.push('/expenses')
+    } else {
+      generalError.value = 'Упс! Введенные вами данные не корректны. Введите данные корректно и повторите попытку.'
+      errors.value.email = ' '
+      errors.value.password = ' '
+    }
   } catch (error) {
     generalError.value = 'Упс! Введенные вами данные не корректны. Введите данные корректно и повторите попытку.'
     errors.value.email = ' '
@@ -233,7 +226,7 @@ const handleLogin = async () => {
   color: #1a1a1a;
   font-size: 26px;
   font-weight: 700;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .login-form {
@@ -257,7 +250,7 @@ const handleLogin = async () => {
   font-size: 14px;
   line-height: 1.5;
   border: 1px solid #ffcdd2;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .register-wrapper {
@@ -272,7 +265,7 @@ const handleLogin = async () => {
   margin: 0;
   color: #555555;
   font-size: 15px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   text-align: center;
 }
 
@@ -281,7 +274,7 @@ const handleLogin = async () => {
   text-decoration: none;
   font-weight: 600;
   font-size: 15px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   transition: color 0.2s;
   text-align: center;
 }
