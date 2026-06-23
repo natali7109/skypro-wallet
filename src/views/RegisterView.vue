@@ -193,20 +193,26 @@ const handleRegister = async () => {
   loading.value = true
   generalError.value = ''
   
+  const userData = {
+    name: name.value,
+    email: login.value,
+    password: password.value
+  }
+  
+  console.log('📤 Отправка регистрации:', userData)
+  
   try {
-    const result = await userStore.register({
-      name: name.value,
-      email: login.value,
-      password: password.value
-    })
+    const result = await userStore.register(userData)
+    console.log('📥 Результат:', result)
     
     if (result.success) {
       router.push('/expenses')
     } else {
-      generalError.value = result.error || 'Ошибка при регистрации'
+      generalError.value = result.error || 'Ошибка регистрации'
     }
   } catch (error) {
-    generalError.value = 'Ошибка при регистрации. Попробуйте позже.'
+    console.error('❌ Ошибка:', error)
+    generalError.value = 'Ошибка соединения с сервером'
   } finally {
     loading.value = false
   }

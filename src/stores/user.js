@@ -25,8 +25,8 @@ export const useUserStore = defineStore('user', () => {
   const setUser = (userData) => {
     user.value = userData
     if (userData) {
-      localStorage.setItem('userName', userData.name || '')
-      localStorage.setItem('userLogin', userData.email || '')
+      localStorage.setItem('userName', userData.name || userData.login || '')
+      localStorage.setItem('userLogin', userData.login || userData.email || '')
     }
   }
 
@@ -35,15 +35,22 @@ export const useUserStore = defineStore('user', () => {
     error.value = ''
     
     try {
-      const response = await loginApi(credentials)
-      const { user, token } = response.data
+      const response = await loginApi({
+        login: credentials.email,
+        password: credentials.password
+      })
       
-      setToken(token)
-      setUser(user)
+      const userData = response.data.user
+      setUser(userData)
       
-      return { success: true, user, token }
+      // Если токен приходит в ответе
+      if (userData.token) {
+        setToken(userData.token)
+      }
+      
+      return { success: true, user: userData }
     } catch (err) {
-      const message = err.response?.data?.message || 'Ошибка входа'
+      const message = err.response?.data?.error || 'Ошибка входа'
       error.value = message
       return { success: false, error: message }
     } finally {
@@ -56,15 +63,22 @@ export const useUserStore = defineStore('user', () => {
     error.value = ''
     
     try {
-      const response = await registerApi(userData)
-      const { user, token } = response.data
+      const response = await registerApi({
+        name: userData.name,
+        login: userData.email,
+        password: userData.password
+      })
       
-      setToken(token)
-      setUser(user)
+      const userDataResponse = response.data.user
+      setUser(userDataResponse)
       
-      return { success: true, user, token }
+      if (userDataResponse.token) {
+        setToken(userDataResponse.token)
+      }
+      
+      return { success: true, user: userDataResponse }
     } catch (err) {
-      const message = err.response?.data?.message || 'Ошибка регистрации'
+      const message = err.response?.data?.error || 'Ошибка регистрации'
       error.value = message
       return { success: false, error: message }
     } finally {
@@ -92,14 +106,11 @@ export const useUserStore = defineStore('user', () => {
   }
 
   return {
-    // Состояние
     user,
     token,
     isLoading,
     error,
-    // Геттеры
     isAuthenticated,
-    // Действия
     setToken,
     setUser,
     login,
