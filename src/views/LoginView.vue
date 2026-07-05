@@ -201,7 +201,7 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F5F5F5;
+  background: #F4F5F6;
   padding: 20px;
   padding-top: 100px;
   overflow: hidden;
@@ -224,7 +224,7 @@ const handleLogin = async () => {
   margin-bottom: 28px;
   text-align: center;
   color: #1a1a1a;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   font-family: 'Montserrat', sans-serif;
 }

@@ -249,7 +249,7 @@ const handleRegister = async () => {
   margin-bottom: 20px;
   text-align: center;
   color: #1a1a1a;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   font-family: 'Montserrat', sans-serif;
 }

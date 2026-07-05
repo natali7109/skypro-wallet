@@ -4,21 +4,22 @@
       <div class="logo">
         <!-- Иконка -->
         <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          
           <rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="#1A1A1A" stroke="#1A1A1A"/>
-          
-         
           <rect x="6" y="12" width="5" height="12" rx="2.5" fill="white"/>
           <rect x="13.5" y="7" width="5" height="17" rx="2.5" fill="white"/>
           <rect x="21" y="16" width="5" height="8" rx="2.5" fill="white"/>
         </svg>
         <span class="logo-text">Skypro.Wallet</span>
       </div>
+      
       <nav v-if="isAuthenticated" class="header-nav">
-        <router-link to="/expenses" class="nav-link">Мои расходы</router-link>
-        <router-link to="/analytics" class="nav-link">Анализ расходов</router-link>
-        <button @click="handleLogout" class="nav-link logout-btn">Выйти</button>
+        <router-link to="/expenses" class="nav-link" active-class="active-link">Мои расходы</router-link>
+        <router-link to="/analytics" class="nav-link" active-class="active-link">Анализ расходов</router-link>
       </nav>
+
+      <div v-if="isAuthenticated" class="header-actions">
+        <button @click="handleLogout" class="nav-link logout-btn">Выйти</button>
+      </div>
     </div>
   </header>
 </template>
@@ -71,6 +72,7 @@ const handleLogout = () => {
   gap: 10px;
   cursor: pointer;
   user-select: none;
+  flex-shrink: 0;
 }
 
 .logo-icon {
@@ -87,20 +89,24 @@ const handleLogout = () => {
   letter-spacing: -0.3px;
 }
 
-.logo-text:hover {
-  color: #565EEF;
-}
-
 .header-nav {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 48px;
+  flex: 1;
+  justify-content: center;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .nav-link {
   font-size: 15px;
-  font-weight: 500;
-  color: #555555;
+  font-weight: 400;
+  color: #000000;
   text-decoration: none;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   transition: color 0.2s;
@@ -108,25 +114,42 @@ const handleLogout = () => {
   border: none;
   cursor: pointer;
   padding: 0;
+  position: relative;
 }
 
 .nav-link:hover {
-  color: #565EEF;
+  color: #7334EA;
 }
 
-.nav-link.router-link-active {
-  color: #565EEF;
+/* Активное состояние с подчёркиванием */
+.nav-link.active-link {
+  color: #7334EA;
   font-weight: 600;
+  text-decoration: none;
+}
+
+/* Подчёркивание для активной ссылки */
+.nav-link.active-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #7334EA;
+  border-radius: 2px;
 }
 
 .logout-btn {
-  color: #c62828;
+  color: #000000;
 }
 
 .logout-btn:hover {
-  color: #b71c1c;
+  color: #7334EA;
 }
 
-
-
+/* Убираем подчёркивание у кнопки выхода */
+.logout-btn.active-link::after {
+  display: none;
+}
 </style>
