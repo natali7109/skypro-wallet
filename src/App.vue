@@ -10,13 +10,14 @@ import AppHeader from '@/components/AppHeader.vue'
 
 export default {
   name: 'App',
-  components: {
-    AppHeader
-  }
+  components: { AppHeader }
 }
 </script>
 
 <style>
+/* Подключаем Montserrat */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
 /* Глобальные стили */
 * {
   margin: 0;
@@ -25,7 +26,7 @@ export default {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background: #F5F5F5;
 }
 

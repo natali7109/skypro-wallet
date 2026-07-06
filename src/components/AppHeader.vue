@@ -18,6 +18,7 @@
       </nav>
 
       <div v-if="isAuthenticated" class="header-actions">
+        <span class="user-login">{{ userLogin }}</span>
         <button @click="handleLogout" class="nav-link logout-btn">Выйти</button>
       </div>
     </div>
@@ -34,6 +35,10 @@ const userStore = useUserStore()
 
 const isAuthenticated = computed(() => {
   return !!localStorage.getItem('token')
+})
+
+const userLogin = computed(() => {
+  return localStorage.getItem('userLogin') || userStore.user?.login || ''
 })
 
 const handleLogout = () => {
@@ -89,6 +94,10 @@ const handleLogout = () => {
   letter-spacing: -0.3px;
 }
 
+.logo-text:hover {
+  color: #7334EA;
+}
+
 .header-nav {
   display: flex;
   align-items: center;
@@ -100,7 +109,14 @@ const handleLogout = () => {
 .header-actions {
   display: flex;
   align-items: center;
+  gap: 16px;
   flex-shrink: 0;
+}
+
+.user-login {
+  font-size: 14px;
+  color: #555555;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .nav-link {
@@ -121,14 +137,12 @@ const handleLogout = () => {
   color: #7334EA;
 }
 
-/* Активное состояние с подчёркиванием */
 .nav-link.active-link {
   color: #7334EA;
   font-weight: 600;
   text-decoration: none;
 }
 
-/* Подчёркивание для активной ссылки */
 .nav-link.active-link::after {
   content: '';
   position: absolute;
@@ -148,8 +162,19 @@ const handleLogout = () => {
   color: #7334EA;
 }
 
-/* Убираем подчёркивание у кнопки выхода */
 .logout-btn.active-link::after {
   display: none;
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 12px 16px;
+  }
+  .header-nav {
+    gap: 20px;
+  }
+  .user-login {
+    display: none;
+  }
 }
 </style>
