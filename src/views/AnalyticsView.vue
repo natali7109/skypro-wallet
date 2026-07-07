@@ -49,57 +49,70 @@
 
         <!-- Диаграмма (справа) -->
         <div class="chart-wrapper">
-          <!-- Общая сумма -->
-          <div class="chart-header">
-            <div class="total-amount">{{ totalAmount }} ₽</div>
-            <div class="period-label-chart" v-if="selectedStartDate">
-              Расходы за {{ formatDate(selectedStartDate) }} — {{ formatDate(selectedEndDate || selectedStartDate) }}
-            </div>
-            <div class="period-label-chart" v-else>
-              Выберите период в календаре
-            </div>
+          <!-- Состояние загрузки -->
+          <div v-if="isLoading" class="loading-state">
+            Загрузка данных...
           </div>
 
-          <!-- График -->
-          <div class="chart-container">
-            <svg width="100%" height="100%" viewBox="0 0 740 420" preserveAspectRatio="xMidYMid meet">
-              <!-- Ось X -->
-              <line x1="0" y1="380" x2="740" y2="380" stroke="#E8E8E8" stroke-width="1"/>
-              
-              <!-- Столбцы -->
-              <g v-for="(item, index) in chartData" :key="index">
-                <!-- Столбец -->
-                <rect 
-                  :x="item.x" 
-                  :y="item.y" 
-                  width="94" 
-                  :height="item.height" 
-                  :fill="item.color" 
-                  rx="12"
-                />
-                
-                <!-- Сумма над столбцом -->
-                <text 
-                  :x="item.x + 47" 
-                  :y="item.y - 10" 
-                  text-anchor="middle" 
-                  class="bar-value"
-                >
-                  {{ item.value }} ₽
-                </text>
-                
-                <!-- Название категории под столбцом -->
-                <text 
-                  :x="item.x + 47" 
-                  :y="405" 
-                  text-anchor="middle" 
-                  class="bar-label"
-                >
-                  {{ item.label }}
-                </text>
-              </g>
-            </svg>
+          <!-- Состояние ошибки -->
+          <div v-else-if="error" class="error-state">
+            {{ error }}
           </div>
+
+          <!-- Данные -->
+          <template v-else>
+            <!-- Общая сумма -->
+            <div class="chart-header">
+              <div class="total-amount">{{ totalAmount }} ₽</div>
+              <div class="period-label-chart" v-if="selectedStartDate">
+                Расходы за {{ formatDate(selectedStartDate) }} — {{ formatDate(selectedEndDate || selectedStartDate) }}
+              </div>
+              <div class="period-label-chart" v-else>
+                Выберите период в календаре
+              </div>
+            </div>
+
+            <!-- График -->
+            <div class="chart-container">
+              <svg width="100%" height="100%" viewBox="0 0 740 420" preserveAspectRatio="xMidYMid meet">
+                <!-- Ось X -->
+                <line x1="0" y1="380" x2="740" y2="380" stroke="#E8E8E8" stroke-width="1"/>
+                
+                <!-- Столбцы -->
+                <g v-for="(item, index) in chartData" :key="index">
+                  <!-- Столбец -->
+                  <rect 
+                    :x="item.x" 
+                    :y="item.y" 
+                    width="94" 
+                    :height="item.height" 
+                    :fill="item.color" 
+                    rx="12"
+                  />
+                  
+                  <!-- Сумма над столбцом -->
+                  <text 
+                    :x="item.x + 47" 
+                    :y="item.y - 10" 
+                    text-anchor="middle" 
+                    class="bar-value"
+                  >
+                    {{ item.value }} ₽
+                  </text>
+                  
+                  <!-- Название категории под столбцом -->
+                  <text 
+                    :x="item.x + 47" 
+                    :y="405" 
+                    text-anchor="middle" 
+                    class="bar-label"
+                  >
+                    {{ item.label }}
+                  </text>
+                </g>
+              </svg>
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -107,7 +120,10 @@
 </template>
 
 <script setup>
+import { useTransactionsStore } from '@/stores/transactions'
 import { ref, computed, onMounted, nextTick } from 'vue'
+
+const transactionsStore = useTransactionsStore()
 
 // ===== КАЛЕНДАРЬ =====
 const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
@@ -116,7 +132,13 @@ const selectedStartDate = ref(null)
 const selectedEndDate = ref(null)
 const scrollContainer = ref(null)
 
+// ===== СОСТОЯНИЯ =====
+const isLoading = ref(false)
+const error = ref('')
+
 // ===== ДАННЫЕ ДЛЯ ДИАГРАММЫ =====
+const categories = ['Еда', 'Транспорт', 'Жильё', 'Развлечения', 'Образование', 'Другое']
+
 // Цвета категорий
 const categoryColors = {
   'Еда': '#D9B6FF',
@@ -128,14 +150,9 @@ const categoryColors = {
 }
 
 // Данные по категориям (суммы за выбранный период)
-const categoryData = ref([
-  { label: 'Еда', value: 21990 },
-  { label: 'Транспорт', value: 11046 },
-  { label: 'Жильё', value: 0 },
-  { label: 'Развлечения', value: 13050 },
-  { label: 'Образование', value: 0 },
-  { label: 'Другое', value: 19106 }
-])
+const categoryData = ref(
+  categories.map(cat => ({ label: cat, value: 0 }))
+)
 
 // Общая сумма
 const totalAmount = computed(() => {
@@ -307,20 +324,56 @@ const toggleDaySelection = (day) => {
   }
 }
 
-const updateChartData = () => {
-  console.log('Период выбран:', {
-    start: formatDate(selectedStartDate.value),
-    end: formatDate(selectedEndDate.value)
-  })
+// ===== ОБНОВЛЕНИЕ ДИАГРАММЫ =====
+const updateChartData = async () => {
+  if (!selectedStartDate.value) {
+    categoryData.value = categories.map(cat => ({ label: cat, value: 0 }))
+    return
+  }
+  
+  isLoading.value = true
+  error.value = ''
+  
+  try {
+    const start = new Date(selectedStartDate.value)
+    const end = selectedEndDate.value ? new Date(selectedEndDate.value) : new Date(start)
+    
+    const result = await transactionsStore.getCategoryTotals(start, end)
+    
+    if (result.success) {
+      categoryData.value = categories.map(cat => ({
+        label: cat,
+        value: result.data[cat] || 0
+      }))
+      console.log('📊 Данные для диаграммы обновлены:', categoryData.value)
+    } else {
+      error.value = result.error || 'Ошибка загрузки данных'
+      categoryData.value = categories.map(cat => ({ label: cat, value: 0 }))
+    }
+  } catch (err) {
+    console.error('❌ Ошибка обновления диаграммы:', err)
+    error.value = 'Ошибка загрузки данных'
+    categoryData.value = categories.map(cat => ({ label: cat, value: 0 }))
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const clearSelection = () => {
   selectedStartDate.value = null
   selectedEndDate.value = null
+  categoryData.value = categories.map(cat => ({ label: cat, value: 0 }))
 }
 
+// ===== ЖИЗНЕННЫЙ ЦИКЛ =====
 onMounted(() => {
   scrollToCurrentMonth()
+  // Загружаем данные за текущий месяц по умолчанию
+  const today = new Date()
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+  selectedStartDate.value = firstDayOfMonth
+  selectedEndDate.value = today
+  updateChartData()
 })
 </script>
 
@@ -482,6 +535,21 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
+.loading-state,
+.error-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  font-size: 18px;
+  color: #999999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.error-state {
+  color: #FF4444;
+}
+
 .chart-header {
   margin-bottom: 16px;
   flex-shrink: 0;
@@ -592,6 +660,11 @@ onMounted(() => {
 
   .bar-label {
     font-size: 12px;
+  }
+
+  .loading-state,
+  .error-state {
+    font-size: 14px;
   }
 }
 </style>

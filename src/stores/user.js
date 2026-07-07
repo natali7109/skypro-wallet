@@ -43,7 +43,7 @@ export const useUserStore = defineStore('user', () => {
       const userData = response.data.user
       setUser(userData)
       
-      // Если токен приходит в ответе
+      
       if (userData.token) {
         setToken(userData.token)
       }

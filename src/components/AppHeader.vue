@@ -4,12 +4,12 @@
       <div class="logo">
         <!-- Иконка -->
         <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="#1A1A1A" stroke="#1A1A1A"/>
-          <rect x="6" y="12" width="5" height="12" rx="2.5" fill="white"/>
-          <rect x="13.5" y="7" width="5" height="17" rx="2.5" fill="white"/>
-          <rect x="21" y="16" width="5" height="8" rx="2.5" fill="white"/>
-        </svg>
-        <span class="logo-text">Skypro.Wallet</span>
+    <rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="#1A1A1A" stroke="#1A1A1A"/>
+    <rect x="6" y="12" width="5" height="12" rx="2.5" fill="white"/>
+    <rect x="13.5" y="7" width="5" height="17" rx="2.5" fill="white"/>
+    <rect x="21" y="16" width="5" height="8" rx="2.5" fill="white"/>
+  </svg>
+  <span class="logo-text">Skypro.Wallet</span>
       </div>
       
       <nav v-if="isAuthenticated" class="header-nav">
@@ -81,8 +81,8 @@ const handleLogout = () => {
 }
 
 .logo-icon {
-  width: 32px;
-  height: 32px;
+      width: 32px;
+    height: 32px;
   flex-shrink: 0;
 }
 
@@ -94,9 +94,7 @@ const handleLogout = () => {
   letter-spacing: -0.3px;
 }
 
-.logo-text:hover {
-  color: #7334EA;
-}
+
 
 .header-nav {
   display: flex;
@@ -116,7 +114,7 @@ const handleLogout = () => {
 .user-login {
   font-size: 14px;
   color: #555555;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  
 }
 
 .nav-link {
@@ -124,7 +122,7 @@ const handleLogout = () => {
   font-weight: 400;
   color: #000000;
   text-decoration: none;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  
   transition: color 0.2s;
   background: none;
   border: none;

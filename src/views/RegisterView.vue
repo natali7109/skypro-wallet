@@ -296,7 +296,7 @@ const handleRegister = async () => {
 }
 
 .login-link {
-  color: #565EEF;
+  color: #555555;
   text-decoration: none;
   font-weight: 600;
   font-size: 15px;
@@ -306,7 +306,7 @@ const handleRegister = async () => {
 }
 
 .login-link:hover {
-  color: #33399b;
+  
   text-decoration: underline;
 }
 </style>

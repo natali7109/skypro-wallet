@@ -8,7 +8,15 @@
         <div class="expenses-table-wrapper">
           <h2 class="section-title">Таблица расходов</h2>
           
-          <div class="table-scroll">
+          <div v-if="transactionsStore.isLoading" class="loading">
+            Загрузка...
+          </div>
+          
+          <div v-else-if="transactionsStore.error" class="error">
+            {{ transactionsStore.error }}
+          </div>
+          
+          <div class="table-scroll" v-else>
             <table class="expenses-table">
               <thead>
                 <tr>
@@ -16,11 +24,11 @@
                   <th>Категория</th>
                   <th>Дата</th>
                   <th>Сумма</th>
-                  <th>Действия</th>
+                  
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="expense in expenses" :key="expense.id">
+                <tr v-for="expense in transactionsStore.transactions" :key="expense.id">
                   <td>{{ expense.description }}</td>
                   <td>{{ expense.category }}</td>
                   <td>{{ expense.date }}</td>
@@ -30,6 +38,7 @@
                       @click="deleteExpense(expense.id)" 
                       class="delete-btn"
                       title="Удалить расход"
+                      :disabled="transactionsStore.isLoading"
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -58,6 +67,7 @@
                 type="text" 
                 placeholder="Введите описание"
                 required
+                minlength="4"
               />
             </div>
 
@@ -89,7 +99,6 @@
                 id="date"
                 v-model="newExpense.date" 
                 type="date" 
-                placeholder="Введите дату"
                 required
               />
             </div>
@@ -102,10 +111,15 @@
                 type="number" 
                 placeholder="Введите сумму"
                 required
+                min="1"
               />
             </div>
 
-            <button type="submit" class="submit-btn">Добавить новый расход</button>
+            <button type="submit" class="submit-btn" :disabled="transactionsStore.isLoading">
+              {{ transactionsStore.isLoading ? 'Добавление...' : 'Добавить новый расход' }}
+            </button>
+            
+            <div v-if="formError" class="form-error">{{ formError }}</div>
           </form>
         </div>
       </div>
@@ -114,7 +128,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useTransactionsStore } from '@/stores/transactions'
 
 // Импорт иконок
 import foodIcon from '@/assets/icons/food.svg'
@@ -123,6 +138,9 @@ import housingIcon from '@/assets/icons/housing.svg'
 import entertainmentIcon from '@/assets/icons/entertainment.svg'
 import educationIcon from '@/assets/icons/education.svg'
 import otherIcon from '@/assets/icons/other.svg'
+
+const transactionsStore = useTransactionsStore()
+const formError = ref('')
 
 const categoryIcons = {
   'Еда': foodIcon,
@@ -137,26 +155,6 @@ const getCategoryIcon = (category) => {
   return categoryIcons[category] || null
 }
 
-const expenses = ref([
-  { id: 1, description: 'Пятерочка', category: 'Еда', date: '03.07.2026', amount: 3500 },
-  { id: 2, description: 'Яндекс такси', category: 'Транспорт', date: '03.07.2026', amount: 730 },
-  { id: 3, description: 'Аптека Вита', category: 'Другое', date: '03.07.2026', amount: 1200 },
-  { id: 4, description: 'Бургер Кинг', category: 'Еда', date: '03.07.2026', amount: 950 },
-  { id: 5, description: 'Деливери', category: 'Еда', date: '02.07.2026', amount: 1320 },
-  { id: 6, description: 'Кофейня №1', category: 'Еда', date: '02.07.2026', amount: 400 },
-  { id: 7, description: 'Бильярд', category: 'Развлечения', date: '29.06.2026', amount: 600 },
-  { id: 8, description: 'Перекресток', category: 'Еда', date: '29.06.2026', amount: 2360 },
-  { id: 9, description: 'Лукойл', category: 'Транспорт', date: '29.06.2026', amount: 1000 },
-  { id: 10, description: 'Летуаль', category: 'Другое', date: '29.05.2026', amount: 4300 },
-  { id: 11, description: 'Яндекс Такси', category: 'Транспорт', date: '28.06.2026', amount: 320 },
-  { id: 12, description: 'Перекресток', category: 'Еда', date: '28.06.2026', amount: 1360 },
-  { id: 13, description: 'Деливери', category: 'Еда', date: '28.06.2026', amount: 2320 },
-  { id: 14, description: 'Вкусвилл', category: 'Еда', date: '27.06.2026', amount: 1220 },
-  { id: 15, description: 'Кофейня №1', category: 'Еда', date: '27.06.2026', amount: 920 },
-  { id: 16, description: 'Вкусвилл', category: 'Еда', date: '26.06.2026', amount: 840 },
-  { id: 17, description: 'Кофейня №1', category: 'Еда', date: '26.06.2026', amount: 920 }
-])
-
 const categories = ['Еда', 'Транспорт', 'Жильё', 'Развлечения', 'Образование', 'Другое']
 
 const newExpense = ref({
@@ -166,43 +164,55 @@ const newExpense = ref({
   amount: ''
 })
 
-const addExpense = () => {
+// Загрузка данных при монтировании
+onMounted(async () => {
+  await transactionsStore.fetchTransactions()
+})
+
+// Добавление расхода
+const addExpense = async () => {
+  formError.value = ''
+  
   if (!newExpense.value.description || !newExpense.value.category || 
       !newExpense.value.date || !newExpense.value.amount) {
-    alert('Пожалуйста, заполните все поля')
+    formError.value = 'Пожалуйста, заполните все поля'
+    return
+  }
+  
+  if (newExpense.value.description.length < 4) {
+    formError.value = 'Описание должно содержать минимум 4 символа'
+    return
+  }
+  
+  if (Number(newExpense.value.amount) <= 0) {
+    formError.value = 'Сумма должна быть положительным числом'
     return
   }
 
-  const expense = {
-    id: Date.now(),
+  const result = await transactionsStore.addTransaction({
     description: newExpense.value.description,
     category: newExpense.value.category,
-    date: formatDate(newExpense.value.date),
+    date: newExpense.value.date,
     amount: Number(newExpense.value.amount)
-  }
-
-  expenses.value.unshift(expense)
+  })
   
-  newExpense.value = {
-    description: '',
-    category: '',
-    date: '',
-    amount: ''
+  if (result.success) {
+    newExpense.value = {
+      description: '',
+      category: '',
+      date: '',
+      amount: ''
+    }
+  } else {
+    formError.value = result.error || 'Ошибка добавления расхода'
   }
 }
 
-const deleteExpense = (id) => {
+// Удаление расхода
+const deleteExpense = async (id) => {
   if (confirm('Вы уверены, что хотите удалить этот расход?')) {
-    expenses.value = expenses.value.filter(expense => expense.id !== id)
+    await transactionsStore.deleteTransaction(id)
   }
-}
-
-const formatDate = (date) => {
-  const d = new Date(date)
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const year = d.getFullYear()
-  return `${day}.${month}.${year}`
 }
 </script>
 
@@ -355,7 +365,7 @@ const formatDate = (date) => {
 }
 
 .form-group label {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   color: #1A1A1A;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -403,7 +413,7 @@ const formatDate = (date) => {
 .category-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   padding: 6px 16px;
   border: 1px solid #E8E8E8;
   border-radius: 20px;

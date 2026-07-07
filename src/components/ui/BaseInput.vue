@@ -64,7 +64,7 @@ defineEmits(['update:model-value', 'blur', 'focus'])
   outline: none;
   box-sizing: border-box;
   height: 50px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: Montserrat;
 }
 
 .base-input::placeholder {
@@ -125,7 +125,7 @@ defineEmits(['update:model-value', 'blur', 'focus'])
   color: #c62828;
   padding-left: 4px;
   font-weight: 500;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: Montserrat;
   margin-top: 4px;
   display: block;
 }
