@@ -143,7 +143,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         start: formatDateForApi(startDate),
         end: formatDateForApi(endDate)
       }
-      console.log('📤 Запрос периода:', data)
+      
       const response = await getTransactionsByPeriodApi(data)
       const transformedData = response.data.map(item => transformFromApi(item))
       return { success: true, data: transformedData }
