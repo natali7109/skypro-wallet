@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import ExpensesView from '@/views/ExpensesView.vue'
@@ -10,9 +9,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView,
-      meta: { requiresAuth: true }
+      redirect: '/expenses' 
     },
     {
       path: '/login',
@@ -51,7 +48,7 @@ router.beforeEach((to, from, next) => {
   } 
   // Если пользователь уже авторизован, но пытается зайти на login/register
   else if ((to.path === '/login' || to.path === '/register') && isAuthenticated) {
-    next('/')
+    next('/expenses') 
   } 
   else {
     next()

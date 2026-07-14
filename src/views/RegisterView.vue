@@ -193,20 +193,26 @@ const handleRegister = async () => {
   loading.value = true
   generalError.value = ''
   
+  const userData = {
+    name: name.value,
+    email: login.value,
+    password: password.value
+  }
+  
+  console.log('📤 Отправка регистрации:', userData)
+  
   try {
-    const result = await userStore.register({
-      name: name.value,
-      email: login.value,
-      password: password.value
-    })
+    const result = await userStore.register(userData)
+    console.log('📥 Результат:', result)
     
     if (result.success) {
       router.push('/expenses')
     } else {
-      generalError.value = result.error || 'Ошибка при регистрации'
+      generalError.value = result.error || 'Ошибка регистрации'
     }
   } catch (error) {
-    generalError.value = 'Ошибка при регистрации. Попробуйте позже.'
+    console.error('❌ Ошибка:', error)
+    generalError.value = 'Ошибка соединения с сервером'
   } finally {
     loading.value = false
   }
@@ -243,7 +249,7 @@ const handleRegister = async () => {
   margin-bottom: 20px;
   text-align: center;
   color: #1a1a1a;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   font-family: 'Montserrat', sans-serif;
 }
@@ -290,7 +296,7 @@ const handleRegister = async () => {
 }
 
 .login-link {
-  color: #565EEF;
+  color: #555555;
   text-decoration: none;
   font-weight: 600;
   font-size: 15px;
@@ -300,7 +306,7 @@ const handleRegister = async () => {
 }
 
 .login-link:hover {
-  color: #33399b;
+  
   text-decoration: underline;
 }
 </style>

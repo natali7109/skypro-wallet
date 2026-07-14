@@ -54,6 +54,8 @@
 </template>
 
 <script setup>
+import { useTransactionsStore } from '@/stores/transactions'
+
 import AppHeader from '@/components/AppHeader.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
@@ -178,6 +180,10 @@ const handleLogin = async () => {
     })
     
     if (result.success) {
+      // Загружаем транзакции после входа
+      const transactionsStore = useTransactionsStore()
+      await transactionsStore.fetchTransactions()
+      
       router.push('/expenses')
     } else {
       generalError.value = 'Упс! Введенные вами данные не корректны. Введите данные корректно и повторите попытку.'
@@ -201,7 +207,7 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F5F5F5;
+  background: #F4F5F6;
   padding: 20px;
   padding-top: 100px;
   overflow: hidden;
@@ -224,7 +230,7 @@ const handleLogin = async () => {
   margin-bottom: 28px;
   text-align: center;
   color: #1a1a1a;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   font-family: 'Montserrat', sans-serif;
 }
@@ -270,7 +276,7 @@ const handleLogin = async () => {
 }
 
 .register-link {
-  color: #565EEF;
+  color: #555555;
   text-decoration: none;
   font-weight: 600;
   font-size: 15px;
@@ -280,7 +286,7 @@ const handleLogin = async () => {
 }
 
 .register-link:hover {
-  color: #33399b;
+  
   text-decoration: underline;
 }
 </style>

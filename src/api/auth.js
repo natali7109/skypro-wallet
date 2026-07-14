@@ -1,27 +1,25 @@
 import api from './index.js'
 
-/**
- * Регистрация нового пользователя
- * @param {Object} data - { name, email, password }
- * @returns {Promise} - { user, token }
- */
+// Правильный адрес из прошлого проекта!
+const API_URL = '/api/user'
+
 export const register = (data) => {
-  return api.post('/auth/register', data)
+  console.log('📤 Регистрация:', data)
+  return api.post(API_URL, {
+    name: data.name,
+    login: data.login,    // ← данные уже приходят с правильным полем
+    password: data.password
+  })
 }
 
-/**
- * Вход пользователя
- * @param {Object} data - { email, password }
- * @returns {Promise} - { user, token }
- */
 export const login = (data) => {
-  return api.post('/auth/login', data)
+  console.log('📤 Вход:', data)
+  return api.post(`${API_URL}/login`, {
+    login: data.login,
+    password: data.password
+  })
 }
 
-/**
- * Получение информации о текущем пользователе
- * @returns {Promise} - { user }
- */
 export const getMe = () => {
-  return api.get('/auth/me')
+  return api.get('/api/auth/me')
 }
