@@ -9,7 +9,7 @@
     }"
   >
     <span v-if="loading" class="spinner"></span>
-    <slot>{{ label }}</slot>
+    <span v-else>{{ label }}</span>
   </button>
 </template>
 
@@ -71,7 +71,6 @@ defineProps({
   box-shadow: none !important;
 }
 
-/* Спиннер загрузки */
 .spinner {
   width: 20px;
   height: 20px;

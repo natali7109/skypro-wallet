@@ -4,18 +4,16 @@
       <h1 class="page-title">Анализ расходов</h1>
 
       <div class="content-grid">
-        <!-- Календарь (слева) -->
+        <!-- Календарь -->
         <div class="calendar-wrapper">
           <h2 class="section-title">Период</h2>
 
-          <!-- Фиксированные дни недели -->
           <div class="weekdays-fixed">
             <div v-for="day in weekDays" :key="day" class="weekday">
               {{ day }}
             </div>
           </div>
 
-          <!-- Прокручиваемый календарь -->
           <div class="calendar-scroll-container" ref="scrollContainer">
             <div class="calendar-months">
               <div 
@@ -47,21 +45,17 @@
           </div>
         </div>
 
-        <!-- Диаграмма (справа) -->
+        <!-- Диаграмма -->
         <div class="chart-wrapper">
-          <!-- Состояние загрузки -->
           <div v-if="isLoading" class="loading-state">
             Загрузка данных...
           </div>
 
-          <!-- Состояние ошибки -->
           <div v-else-if="error" class="error-state">
             {{ error }}
           </div>
 
-          <!-- Данные -->
           <template v-else>
-            <!-- Общая сумма -->
             <div class="chart-header">
               <div class="total-amount">{{ totalAmount }} ₽</div>
               <div class="period-label-chart" v-if="selectedStartDate">
@@ -72,15 +66,11 @@
               </div>
             </div>
 
-            <!-- График -->
             <div class="chart-container">
               <svg width="100%" height="100%" viewBox="0 0 740 420" preserveAspectRatio="xMidYMid meet">
-                <!-- Ось X -->
                 <line x1="0" y1="380" x2="740" y2="380" stroke="#E8E8E8" stroke-width="1"/>
                 
-                <!-- Столбцы -->
                 <g v-for="(item, index) in chartData" :key="index">
-                  <!-- Столбец -->
                   <rect 
                     :x="item.x" 
                     :y="item.y" 
@@ -89,8 +79,6 @@
                     :fill="item.color" 
                     rx="12"
                   />
-                  
-                  <!-- Сумма над столбцом -->
                   <text 
                     :x="item.x + 47" 
                     :y="item.y - 10" 
@@ -99,8 +87,6 @@
                   >
                     {{ item.value }} ₽
                   </text>
-                  
-                  <!-- Название категории под столбцом -->
                   <text 
                     :x="item.x + 47" 
                     :y="405" 
@@ -120,26 +106,25 @@
 </template>
 
 <script setup>
-import { useTransactionsStore } from '@/stores/transactions'
 import { ref, computed, onMounted, nextTick } from 'vue'
+import { useTransactionsStore } from '@/stores/transactions'
 
+// ===== Хранилище =====
 const transactionsStore = useTransactionsStore()
 
-// ===== КАЛЕНДАРЬ =====
+// ===== Календарь =====
 const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
-
 const selectedStartDate = ref(null)
 const selectedEndDate = ref(null)
 const scrollContainer = ref(null)
 
-// ===== СОСТОЯНИЯ =====
+// ===== Состояния =====
 const isLoading = ref(false)
 const error = ref('')
 
-// ===== ДАННЫЕ ДЛЯ ДИАГРАММЫ =====
+// ===== Категории и цвета =====
 const categories = ['Еда', 'Транспорт', 'Жильё', 'Развлечения', 'Образование', 'Другое']
 
-// Цвета категорий
 const categoryColors = {
   'Еда': '#D9B6FF',
   'Транспорт': '#FFB53D',
@@ -149,17 +134,13 @@ const categoryColors = {
   'Другое': '#FFB9B8'
 }
 
-// Данные по категориям (суммы за выбранный период)
-const categoryData = ref(
-  categories.map(cat => ({ label: cat, value: 0 }))
+// ===== Данные диаграммы =====
+const categoryData = ref(categories.map(cat => ({ label: cat, value: 0 })))
+
+const totalAmount = computed(() => 
+  categoryData.value.reduce((sum, item) => sum + item.value, 0)
 )
 
-// Общая сумма
-const totalAmount = computed(() => {
-  return categoryData.value.reduce((sum, item) => sum + item.value, 0)
-})
-
-// Данные для отрисовки диаграммы
 const chartData = computed(() => {
   const maxValue = Math.max(...categoryData.value.map(item => item.value), 1)
   const chartHeight = 280
@@ -172,37 +153,24 @@ const chartData = computed(() => {
     
     return {
       ...item,
-      x: x,
-      y: y,
-      height: height,
+      x,
+      y,
+      height,
       color: categoryColors[item.label] || '#CCCCCC'
     }
   })
 })
 
-// ===== ФУНКЦИИ КАЛЕНДАРЯ =====
+// ===== Форматирование даты =====
 const formatDate = (date) => {
   if (!date) return ''
   const d = new Date(date)
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const year = d.getFullYear()
-  return `${day}.${month}.${year}`
+  return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`
 }
 
-const generateAllMonths = () => {
+// ===== Генерация месяцев =====
+const generateMonths = (startYear, startMonth, endYear, endMonth) => {
   const months = []
-  const today = new Date()
-  const currentYear = today.getFullYear()
-  const currentMonth = today.getMonth()
-  
-  const startDate = new Date(currentYear, currentMonth - 24, 1)
-  const endDate = new Date(currentYear, currentMonth + 12, 1)
-  
-  const startYear = startDate.getFullYear()
-  const startMonth = startDate.getMonth()
-  const endYear = endDate.getFullYear()
-  const endMonth = endDate.getMonth()
   
   for (let year = startYear; year <= endYear; year++) {
     const monthStart = (year === startYear) ? startMonth : 0
@@ -214,7 +182,7 @@ const generateAllMonths = () => {
       
       const firstDay = new Date(year, month, 1)
       const lastDay = new Date(year, month + 1, 0)
-      const daysInMonthCount = lastDay.getDate()
+      const daysInMonth = lastDay.getDate()
       
       let firstDayOfWeek = firstDay.getDay()
       firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
@@ -222,36 +190,35 @@ const generateAllMonths = () => {
       const days = []
       
       for (let i = 0; i < firstDayOfWeek; i++) {
-        days.push({
-          day: null,
-          date: null,
-          isCurrentMonth: false
-        })
+        days.push({ day: null, date: null, isCurrentMonth: false })
       }
       
-      for (let i = 1; i <= daysInMonthCount; i++) {
+      for (let i = 1; i <= daysInMonth; i++) {
         const dayDate = new Date(year, month, i)
-        days.push({
-          day: i,
-          date: dayDate,
-          isCurrentMonth: true
-        })
+        days.push({ day: i, date: dayDate, isCurrentMonth: true })
       }
       
-      months.push({
-        label: label,
-        year: year,
-        month: month,
-        days: days
-      })
+      months.push({ label, year, month, days })
     }
   }
   
   return months
 }
 
-const allMonths = ref(generateAllMonths())
+const allMonths = ref(
+  (() => {
+    const today = new Date()
+    const currentYear = today.getFullYear()
+    const currentMonth = today.getMonth()
+    
+    return generateMonths(
+      currentYear, currentMonth - 24,
+      currentYear, currentMonth + 12
+    )
+  })()
+)
 
+// ===== Прокрутка к текущему месяцу =====
 const scrollToCurrentMonth = () => {
   nextTick(() => {
     if (!scrollContainer.value) return
@@ -260,14 +227,7 @@ const scrollToCurrentMonth = () => {
     const today = new Date()
     const currentMonthLabel = today.toLocaleString('ru', { month: 'long', year: 'numeric' })
     
-    let targetIndex = -1
-    for (let i = 0; i < allMonths.value.length; i++) {
-      if (allMonths.value[i].label === currentMonthLabel) {
-        targetIndex = i
-        break
-      }
-    }
-    
+    const targetIndex = allMonths.value.findIndex(m => m.label === currentMonthLabel)
     if (targetIndex === -1) return
     
     const monthElements = container.querySelectorAll('.month-block')
@@ -277,18 +237,14 @@ const scrollToCurrentMonth = () => {
   })
 }
 
+// ===== Проверки календаря =====
 const isSingleSelected = (day) => {
-  if (!day.date) return false
-  if (!selectedStartDate.value) return false
-  if (selectedEndDate.value) return false
-  
+  if (!day.date || !selectedStartDate.value || selectedEndDate.value) return false
   return day.date.toDateString() === selectedStartDate.value.toDateString()
 }
 
 const isDayInPeriod = (day) => {
-  if (!day.date) return false
-  
-  if (!selectedStartDate.value) return false
+  if (!day.date || !selectedStartDate.value) return false
   
   if (selectedStartDate.value && !selectedEndDate.value) {
     return day.date.toDateString() === selectedStartDate.value.toDateString()
@@ -304,6 +260,7 @@ const isDayInPeriod = (day) => {
   return false
 }
 
+// ===== Выбор дня =====
 const toggleDaySelection = (day) => {
   if (!day.isCurrentMonth) return
   
@@ -312,8 +269,7 @@ const toggleDaySelection = (day) => {
   if (!selectedStartDate.value || (selectedStartDate.value && selectedEndDate.value)) {
     selectedStartDate.value = date
     selectedEndDate.value = null
-  } 
-  else if (selectedStartDate.value && !selectedEndDate.value) {
+  } else if (selectedStartDate.value && !selectedEndDate.value) {
     if (date < selectedStartDate.value) {
       selectedEndDate.value = selectedStartDate.value
       selectedStartDate.value = date
@@ -324,7 +280,7 @@ const toggleDaySelection = (day) => {
   }
 }
 
-// ===== ОБНОВЛЕНИЕ ДИАГРАММЫ =====
+// ===== Обновление диаграммы =====
 const updateChartData = async () => {
   if (!selectedStartDate.value) {
     categoryData.value = categories.map(cat => ({ label: cat, value: 0 }))
@@ -345,13 +301,11 @@ const updateChartData = async () => {
         label: cat,
         value: result.data[cat] || 0
       }))
-      console.log('📊 Данные для диаграммы обновлены:', categoryData.value)
     } else {
       error.value = result.error || 'Ошибка загрузки данных'
       categoryData.value = categories.map(cat => ({ label: cat, value: 0 }))
     }
   } catch (err) {
-    console.error('❌ Ошибка обновления диаграммы:', err)
     error.value = 'Ошибка загрузки данных'
     categoryData.value = categories.map(cat => ({ label: cat, value: 0 }))
   } finally {
@@ -359,16 +313,10 @@ const updateChartData = async () => {
   }
 }
 
-const clearSelection = () => {
-  selectedStartDate.value = null
-  selectedEndDate.value = null
-  categoryData.value = categories.map(cat => ({ label: cat, value: 0 }))
-}
-
-// ===== ЖИЗНЕННЫЙ ЦИКЛ =====
+// ===== Жизненный цикл =====
 onMounted(() => {
   scrollToCurrentMonth()
-  // Загружаем данные за текущий месяц по умолчанию
+  
   const today = new Date()
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
   selectedStartDate.value = firstDayOfMonth
@@ -395,7 +343,6 @@ onMounted(() => {
   font-weight: 700;
   color: #1A1A1A;
   margin-bottom: 32px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .content-grid {
@@ -405,7 +352,7 @@ onMounted(() => {
   align-items: start;
 }
 
-/* ===== КАЛЕНДАРЬ ===== */
+/* ===== Календарь ===== */
 .calendar-wrapper {
   background: #FFFFFF;
   border-radius: 12px;
@@ -432,7 +379,6 @@ onMounted(() => {
   font-weight: 600;
   color: #555555;
   padding: 8px 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .calendar-scroll-container {
@@ -464,7 +410,6 @@ onMounted(() => {
   font-weight: 600;
   color: #1A1A1A;
   margin-bottom: 8px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .days-grid {
@@ -496,17 +441,11 @@ onMounted(() => {
   border-radius: 50%;
   font-size: 13px;
   color: #1A1A1A;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background: #F5F5F5;
   transition: all 0.2s;
 }
 
-.day-cell.single-selected .day-circle {
-  color: #7334EA;
-  background: #E8E0FF;
-  font-weight: 600;
-}
-
+.day-cell.single-selected .day-circle,
 .day-cell.in-period .day-circle {
   color: #7334EA;
   background: #E8E0FF;
@@ -522,7 +461,7 @@ onMounted(() => {
   visibility: hidden;
 }
 
-/* ===== ДИАГРАММА ===== */
+/* ===== Диаграмма ===== */
 .chart-wrapper {
   background: #FFFFFF;
   border-radius: 12px;
@@ -543,7 +482,6 @@ onMounted(() => {
   flex: 1;
   font-size: 18px;
   color: #999999;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .error-state {
@@ -559,13 +497,11 @@ onMounted(() => {
   font-size: 36px;
   font-weight: 700;
   color: #1A1A1A;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .period-label-chart {
   font-size: 14px;
   color: #999999;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   margin-top: 4px;
 }
 
@@ -584,14 +520,12 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 600;
   fill: #1A1A1A;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .bar-label {
   font-size: 14px;
   font-weight: 500;
   fill: #555555;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 @media (max-width: 1024px) {
@@ -654,10 +588,7 @@ onMounted(() => {
     font-size: 24px;
   }
 
-  .bar-value {
-    font-size: 12px;
-  }
-
+  .bar-value,
   .bar-label {
     font-size: 12px;
   }

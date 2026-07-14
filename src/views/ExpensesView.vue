@@ -24,7 +24,7 @@
                   <th>Категория</th>
                   <th>Дата</th>
                   <th>Сумма</th>
-                  
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -58,12 +58,12 @@
         <div class="add-expense-wrapper">
           <h2 class="section-title">Новый расход</h2>
           
-          <form @submit.prevent="addExpense" class="expense-form">
+          <form @submit.prevent="submitExpense" class="expense-form">
             <div class="form-group">
               <label for="description">Описание</label>
               <input 
                 id="description"
-                v-model="newExpense.description" 
+                v-model="expenseForm.description" 
                 type="text" 
                 placeholder="Введите описание"
                 required
@@ -79,14 +79,13 @@
                   :key="category"
                   type="button"
                   class="category-btn"
-                  :class="{ active: newExpense.category === category }"
-                  @click="newExpense.category = category"
+                  :class="{ active: expenseForm.category === category }"
+                  @click="expenseForm.category = category"
                 >
                   <img 
-                    :src="getCategoryIcon(category)" 
+                    :src="categoryIcons[category]" 
                     :alt="category" 
                     class="category-icon"
-                    v-if="getCategoryIcon(category)"
                   />
                   {{ category }}
                 </button>
@@ -97,7 +96,7 @@
               <label for="date">Дата</label>
               <input 
                 id="date"
-                v-model="newExpense.date" 
+                v-model="expenseForm.date" 
                 type="date" 
                 required
               />
@@ -107,7 +106,7 @@
               <label for="amount">Сумма</label>
               <input 
                 id="amount"
-                v-model="newExpense.amount" 
+                v-model="expenseForm.amount" 
                 type="number" 
                 placeholder="Введите сумму"
                 required
@@ -130,8 +129,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useTransactionsStore } from '@/stores/transactions'
-
-// Импорт иконок
 import foodIcon from '@/assets/icons/food.svg'
 import transportIcon from '@/assets/icons/transport.svg'
 import housingIcon from '@/assets/icons/housing.svg'
@@ -139,8 +136,12 @@ import entertainmentIcon from '@/assets/icons/entertainment.svg'
 import educationIcon from '@/assets/icons/education.svg'
 import otherIcon from '@/assets/icons/other.svg'
 
+// ===== Хранилище =====
 const transactionsStore = useTransactionsStore()
 const formError = ref('')
+
+// ===== Категории и иконки =====
+const categories = ['Еда', 'Транспорт', 'Жильё', 'Развлечения', 'Образование', 'Другое']
 
 const categoryIcons = {
   'Еда': foodIcon,
@@ -151,69 +152,76 @@ const categoryIcons = {
   'Другое': otherIcon
 }
 
-const getCategoryIcon = (category) => {
-  return categoryIcons[category] || null
-}
-
-const categories = ['Еда', 'Транспорт', 'Жильё', 'Развлечения', 'Образование', 'Другое']
-
-const newExpense = ref({
+// ===== Форма =====
+const expenseForm = ref({
   description: '',
   category: '',
   date: '',
   amount: ''
 })
 
-// Загрузка данных при монтировании
-onMounted(async () => {
-  await transactionsStore.fetchTransactions()
-})
+// ===== Валидация =====
+const validateForm = () => {
+  const { description, category, date, amount } = expenseForm.value
+  
+  if (!description || !category || !date || !amount) {
+    return 'Пожалуйста, заполните все поля'
+  }
+  
+  if (description.length < 4) {
+    return 'Описание должно содержать минимум 4 символа'
+  }
+  
+  if (Number(amount) <= 0) {
+    return 'Сумма должна быть положительным числом'
+  }
+  
+  return null
+}
 
-// Добавление расхода
-const addExpense = async () => {
+const clearForm = () => {
+  expenseForm.value = {
+    description: '',
+    category: '',
+    date: '',
+    amount: ''
+  }
+}
+
+// ===== Действия =====
+const submitExpense = async () => {
   formError.value = ''
   
-  if (!newExpense.value.description || !newExpense.value.category || 
-      !newExpense.value.date || !newExpense.value.amount) {
-    formError.value = 'Пожалуйста, заполните все поля'
-    return
-  }
-  
-  if (newExpense.value.description.length < 4) {
-    formError.value = 'Описание должно содержать минимум 4 символа'
-    return
-  }
-  
-  if (Number(newExpense.value.amount) <= 0) {
-    formError.value = 'Сумма должна быть положительным числом'
+  const validationError = validateForm()
+  if (validationError) {
+    formError.value = validationError
     return
   }
 
   const result = await transactionsStore.addTransaction({
-    description: newExpense.value.description,
-    category: newExpense.value.category,
-    date: newExpense.value.date,
-    amount: Number(newExpense.value.amount)
+    description: expenseForm.value.description,
+    category: expenseForm.value.category,
+    date: expenseForm.value.date,
+    amount: Number(expenseForm.value.amount)
   })
   
   if (result.success) {
-    newExpense.value = {
-      description: '',
-      category: '',
-      date: '',
-      amount: ''
-    }
+    clearForm()
   } else {
     formError.value = result.error || 'Ошибка добавления расхода'
   }
 }
 
-// Удаление расхода
 const deleteExpense = async (id) => {
   if (confirm('Вы уверены, что хотите удалить этот расход?')) {
     await transactionsStore.deleteTransaction(id)
   }
 }
+
+// ===== Загрузка данных =====
+onMounted(async () => {
+  await transactionsStore.fetchTransactions()
+})
 </script>
 
 <style scoped>
@@ -234,7 +242,6 @@ const deleteExpense = async (id) => {
   font-weight: 700;
   color: #1A1A1A;
   margin-bottom: 32px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .section-title {
@@ -242,17 +249,16 @@ const deleteExpense = async (id) => {
   font-weight: 600;
   color: #1A1A1A;
   margin-bottom: 16px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
-
 
 .content-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 24px;
-  align-items: stretch; 
+  align-items: stretch;
 }
 
+/* ===== Таблица ===== */
 .expenses-table-wrapper {
   background: #FFFFFF;
   border-radius: 12px;
@@ -292,7 +298,6 @@ const deleteExpense = async (id) => {
   font-weight: 600;
   color: #555555;
   border-bottom: 2px solid #E8E8E8;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   position: sticky;
   top: 0;
   background: #FFFFFF;
@@ -309,7 +314,6 @@ const deleteExpense = async (id) => {
   font-size: 14px;
   color: #1A1A1A;
   border-bottom: 1px solid #F0F0F0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .expenses-table tbody td:last-child {
@@ -345,6 +349,12 @@ const deleteExpense = async (id) => {
   transform: scale(0.9);
 }
 
+.delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== Форма ===== */
 .add-expense-wrapper {
   background: #FFFFFF;
   border-radius: 12px;
@@ -368,7 +378,6 @@ const deleteExpense = async (id) => {
   font-size: 16px;
   font-weight: 500;
   color: #1A1A1A;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .form-group input {
@@ -377,7 +386,6 @@ const deleteExpense = async (id) => {
   border-radius: 8px;
   font-size: 14px;
   color: #1A1A1A;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   transition: border-color 0.2s;
   width: 100%;
   box-sizing: border-box;
@@ -394,15 +402,13 @@ const deleteExpense = async (id) => {
 
 .form-group input:valid {
   border-color: #7334EA;
-  background-color: #F5F0FF; 
+  background-color: #F5F0FF;
 }
 
 .form-group input:valid:focus {
-  border-color: #5A28C7; 
+  border-color: #5A28C7;
   background-color: #EDE4FF;
 }
-
-
 
 .category-select {
   display: flex;
@@ -422,23 +428,22 @@ const deleteExpense = async (id) => {
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  flex-shrink: 0; 
+  flex-shrink: 0;
   width: auto;
   justify-content: flex-start;
 }
 
-.category-btn:hover, .category-btn.active {
+.category-btn:hover,
+.category-btn.active {
   color: #7334EA;
 }
-
-
 
 .category-btn .category-icon {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
 }
+
 .category-btn.active .category-icon {
   filter: brightness(0) saturate(100%) invert(30%) sepia(80%) saturate(3000%) hue-rotate(250deg) brightness(95%);
 }
@@ -453,7 +458,6 @@ const deleteExpense = async (id) => {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   margin-top: 8px;
   width: 100%;
 }
@@ -466,6 +470,32 @@ const deleteExpense = async (id) => {
   transform: scale(0.98);
 }
 
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== Состояния ===== */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #999999;
+}
+
+.error {
+  text-align: center;
+  padding: 40px;
+  color: #FF4444;
+}
+
+.form-error {
+  color: #FF4444;
+  font-size: 14px;
+  text-align: center;
+  margin-top: -10px;
+}
+
+/* ===== Адаптивность ===== */
 @media (max-width: 1024px) {
   .content-grid {
     grid-template-columns: 1fr 1fr;
